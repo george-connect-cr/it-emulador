@@ -1,1164 +1,480 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Connect · Emulador de Redundancia de Voz</title>
-<style>
-  :root {
-    --orange: #FF6B2C;
-    --orange-d: #E04F0F;
-    --orange-s: #FFF0E8;
-    --navy: #0E2347;
-    --navy-m: #1A3A6B;
-    --navy-l: #2A4A85;
-    --blue: #3B7DCC;
-    --blue-s: #EBF3FF;
-    --green: #16a34a;
-    --red: #DC2626;
-    --gray-50: #f8fafc;
-    --gray-100: #f0f4f9;
-    --gray-200: #dde4ef;
-    --gray-400: #94a3b8;
-    --gray-600: #475569;
-    --gray-900: #0f172a;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Asistencia • epark</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    background: #dde4ef;
-    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-    min-height: 100vh;
-    padding: 24px 16px;
-  }
+    :root {
+      --bg: #0a0c0f;
+      --surface: #111317;
+      --border: rgba(255,255,255,0.07);
+      --accent: #f0c040;
+      --accent-glow: rgba(240,192,64,0.35);
+      --accent-dim: rgba(240,192,64,0.12);
+      --text: #f0ede8;
+      --muted: rgba(240,237,232,0.38);
+      --danger: #e05555;
+      --danger-glow: rgba(224,85,85,0.4);
+    }
 
-  .emulador {
-    max-width: 1380px;
-    margin: 0 auto;
-    background: #fff;
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(14,35,71,.08), 0 8px 24px rgba(14,35,71,.12), 0 32px 64px rgba(14,35,71,.10);
-    border: 1px solid rgba(14,35,71,.10);
-  }
+    html, body {
+      height: 100%;
+      width: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-  /* ── HEADER ── */
-  .header {
-    background: var(--navy);
-    padding: 0 28px;
-    height: 64px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    position: relative;
-    overflow: hidden;
-  }
-  .header::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--orange) 0%, #FF9060 60%, var(--orange-d) 100%);
-  }
-  .header::before {
-    content: '';
-    position: absolute;
-    right: 0; top: 0; bottom: 0;
-    width: 35%;
-    background: radial-gradient(ellipse at right center, rgba(255,107,44,.14) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .header-title {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    position: relative;
-    z-index: 1;
-  }
-  .brand-mark {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 6px 14px;
-    background: linear-gradient(135deg, rgba(255,107,44,.18), rgba(255,107,44,.06));
-    border: 1px solid rgba(255,107,44,.35);
-    border-radius: 8px;
-  }
-  .brand-mark-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--orange);
-    box-shadow: 0 0 8px rgba(255,107,44,.8);
-  }
-  .brand-mark-text {
-    font-weight: 800;
-    font-size: 14px;
-    color: #fff;
-    letter-spacing: 1px;
-  }
-  .header-divider {
-    width: 1px;
-    height: 28px;
-    background: rgba(255,255,255,.18);
-  }
-  .header-text h1 {
-    font-size: 13.5px;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: .1px;
-  }
-  .header-text small {
-    display: block;
-    font-size: 11px;
-    color: rgba(255,255,255,.55);
-    margin-top: 2px;
-    letter-spacing: .2px;
-  }
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    position: relative;
-    z-index: 1;
-  }
-  .status-pill {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 11px;
-    background: rgba(22,163,74,.14);
-    border: 1px solid rgba(22,163,74,.32);
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: .9px;
-    color: #4ade80;
-    text-transform: uppercase;
-  }
-  .status-dot {
-    width: 6px; height: 6px;
-    background: #4ade80;
-    border-radius: 50%;
-    box-shadow: 0 0 5px #4ade80;
-    animation: blink 2s infinite;
-  }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
-  .clock {
-    font-family: 'JetBrains Mono','Consolas',monospace;
-    font-size: 12px;
-    color: rgba(255,255,255,.88);
-    background: rgba(0,0,0,.28);
-    padding: 5px 12px;
-    border-radius: 6px;
-    border: 1px solid rgba(255,255,255,.12);
-    letter-spacing: .5px;
-  }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0;
+    }
 
-  /* ── SCENARIO TABS ── */
-  .scenarios {
-    display: grid;
-    grid-template-columns: repeat(4,1fr);
-    gap: 0;
-    background: var(--gray-100);
-    border-bottom: 1px solid var(--gray-200);
-  }
-  .scn-btn {
-    padding: 13px 18px;
-    background: transparent;
-    border: none;
-    border-right: 1px solid var(--gray-200);
-    color: var(--gray-600);
-    font-family: inherit;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    text-align: left;
-    transition: all .2s;
-    border-bottom: 3px solid transparent;
-    position: relative;
-  }
-  .scn-btn:last-child { border-right: none; }
-  .scn-btn:hover { background: #fff; color: var(--navy); }
-  .scn-btn .scn-tag {
-    display: block;
-    font-size: 11.5px;
-    font-weight: 700;
-    margin-bottom: 3px;
-    color: var(--gray-900);
-    letter-spacing: .1px;
-  }
-  .scn-btn .scn-desc {
-    font-size: 10.5px;
-    color: var(--gray-400);
-    font-weight: 400;
-    line-height: 1.45;
-  }
-  .scn-btn.active { background: #fff; }
-  .scn-btn.active .scn-tag { color: var(--navy); }
-  .scn-btn.active.normal  { border-bottom-color: var(--navy-m); }
-  .scn-btn.active.plana   { border-bottom-color: var(--orange); }
-  .scn-btn.active.planb   { border-bottom-color: var(--blue); }
-  .scn-btn.active.planc   { border-bottom-color: var(--red); }
+    /* ─── Noise overlay ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 180px;
+      pointer-events: none;
+      z-index: 0;
+    }
 
-  /* ── SCENARIO INFO BAR ── */
-  .scenario-info {
-    padding: 10px 28px;
-    background: #fff;
-    border-bottom: 1px solid var(--gray-200);
-    font-size: 12.5px;
-    color: var(--gray-600);
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    line-height: 1.55;
-  }
-  .scn-name {
-    white-space: nowrap;
-    color: var(--navy);
-    font-weight: 700;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: .5px;
-    padding: 4px 10px;
-    background: var(--blue-s);
-    border-radius: 5px;
-    border: 1px solid #c8ddf5;
-  }
+    /* ─── Header ─── */
+    header {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px 28px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,12,15,0.85);
+      backdrop-filter: blur(12px);
+    }
 
-  /* ── CANVAS ── */
-  .canvas-wrap {
-    padding: 24px 22px 28px;
-    background: #fafbfd;
-    position: relative;
-  }
-  .canvas-wrap::before {
-    content: '';
-    position: absolute;
-    inset: 20px;
-    background-image:
-      linear-gradient(rgba(14,35,71,.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(14,35,71,.025) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    border-radius: 8px;
-  }
-  .canvas-wrap svg { width:100%; height:auto; display:block; position:relative; }
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.35rem;
+      letter-spacing: -0.02em;
+      color: var(--accent);
+    }
 
-  /* ── SVG text classes ── */
-  .node-label { fill: var(--gray-900); font-family:'Inter',system-ui,sans-serif; font-size:12px; font-weight:700; text-anchor:middle; }
-  .node-sub   { fill: var(--gray-400); font-family:'Inter',system-ui,sans-serif; font-size:10px; text-anchor:middle; }
-  .node-mono  { fill: var(--navy-m);   font-family:'JetBrains Mono','Consolas',monospace; font-size:10px; text-anchor:middle; font-weight:700; }
-  .node-icon  { font-size:16px; text-anchor:middle; }
+    .logo span {
+      color: var(--text);
+      opacity: 0.55;
+    }
 
-  .conn-path { fill:none; stroke-width:2; transition:all .4s ease; stroke-linecap:round; }
-  .conn-path.navy        { stroke: var(--navy-m);  stroke-opacity:.8; }
-  .conn-path.orange      { stroke: var(--orange);  stroke-opacity:.9; }
-  .conn-path.blue        { stroke: var(--blue);    stroke-opacity:.9; }
-  .conn-path.orange-deep { stroke: var(--orange-d);stroke-opacity:.9; }
-  .conn-path.green       { stroke: var(--green);   stroke-opacity:.95; }
-  .conn-path.fail        { stroke: var(--red);     stroke-opacity:.65; stroke-dasharray:5,3; }
-  .conn-path.inactive    { stroke: var(--gray-200);stroke-opacity:.5; }
-  .conn-path.dotted      { stroke: var(--gray-400);stroke-opacity:.45; stroke-dasharray:4,4; }
+    .badge {
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid rgba(240,192,64,0.25);
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
 
-  @keyframes pulse-ring { 0%{r:20;opacity:.5;stroke-width:3} 100%{r:52;opacity:0;stroke-width:1} }
-  .pulse-ring { fill:none; animation:pulse-ring 1.8s infinite; }
+    /* ─── Main ─── */
+    main {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      gap: 0;
+      padding: 32px 24px;
+    }
 
-  /* ── FOOTER ── */
-  .footer {
-    padding: 13px 28px;
-    background: var(--gray-100);
-    border-top: 1px solid var(--gray-200);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .legend { display:flex; gap:18px; flex-wrap:wrap; }
-  .legend-item { display:flex; align-items:center; gap:7px; font-size:11px; font-weight:600; color:var(--gray-600); text-transform:uppercase; letter-spacing:.4px; }
-  .legend-dot { width:10px; height:10px; border-radius:50%; }
-  .legend-dot.navy  { background: var(--navy-m); box-shadow:0 0 6px rgba(26,58,107,.5); }
-  .legend-dot.orange{ background: var(--orange);  box-shadow:0 0 6px rgba(255,107,44,.5); }
-  .legend-dot.blue  { background: var(--blue);    box-shadow:0 0 6px rgba(59,125,204,.5); }
-  .legend-dot.red   { background: var(--red);     box-shadow:0 0 6px rgba(220,38,38,.5); }
-  .footer-note { font-size:11px; color:var(--gray-400); }
+    .status-ring {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 2px solid rgba(240,192,64,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      position: relative;
+    }
 
-  @media (max-width: 900px) { .scenarios { grid-template-columns: repeat(2,1fr); } }
-</style>
+    .status-ring::before {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 1px solid rgba(240,192,64,0.08);
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #4caf7d;
+      box-shadow: 0 0 8px rgba(76,175,125,0.8);
+      animation: pulse-dot 2.4s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.25); opacity: 0.7; }
+    }
+
+    .headline {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.55rem;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+
+    .subtext {
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.55;
+      max-width: 260px;
+      margin-bottom: 52px;
+    }
+
+    /* ─── Button ─── */
+    .btn-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Orbit ring */
+    .orbit {
+      position: absolute;
+      width: 210px;
+      height: 210px;
+      border-radius: 50%;
+      border: 1px dashed rgba(240,192,64,0.18);
+      animation: spin 18s linear infinite;
+      pointer-events: none;
+    }
+
+    .orbit::after {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    /* Pulse halo */
+    .halo {
+      position: absolute;
+      width: 170px;
+      height: 170px;
+      border-radius: 50%;
+      background: var(--accent-glow);
+      filter: blur(32px);
+      animation: breathe 3s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: scale(0.9); opacity: 0.6; }
+      50% { transform: scale(1.1); opacity: 1; }
+    }
+
+    .btn-help {
+      position: relative;
+      z-index: 2;
+      width: 158px;
+      height: 158px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      background: conic-gradient(from 135deg, #f0c040, #e07a20, #f0c040);
+      box-shadow:
+        0 0 0 4px rgba(240,192,64,0.15),
+        0 0 40px rgba(240,192,64,0.3),
+        0 12px 48px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.12s cubic-bezier(.4,0,.2,1),
+                  box-shadow 0.12s cubic-bezier(.4,0,.2,1);
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+      user-select: none;
+    }
+
+    .btn-help:active {
+      transform: scale(0.93);
+      box-shadow:
+        0 0 0 6px rgba(240,192,64,0.25),
+        0 0 60px rgba(240,192,64,0.55),
+        0 6px 24px rgba(0,0,0,0.7);
+    }
+
+    .btn-help svg {
+      width: 42px;
+      height: 42px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+    }
+
+    .btn-label {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #1a1200;
+    }
+
+    /* ─── Calling overlay ─── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(10,12,15,0.97);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .calling-ring {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      margin-bottom: 32px;
+    }
+
+    .calling-ring .r {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2px solid rgba(240,192,64,0.5);
+      animation: expand 2.2s ease-out infinite;
+    }
+    .calling-ring .r:nth-child(2) { animation-delay: 0.6s; }
+    .calling-ring .r:nth-child(3) { animation-delay: 1.2s; }
+
+    @keyframes expand {
+      0%   { transform: scale(0.5); opacity: 0.8; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+
+    .calling-icon {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 32px var(--accent-glow);
+    }
+
+    .calling-icon svg {
+      width: 52px;
+      height: 52px;
+    }
+
+    .call-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      margin-bottom: 6px;
+    }
+
+    .call-number {
+      font-size: 0.9rem;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    .call-status {
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 48px;
+      animation: blink 1.2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .btn-cancel {
+      background: rgba(224,85,85,0.12);
+      border: 1px solid rgba(224,85,85,0.3);
+      color: var(--danger);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      padding: 14px 36px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+
+    .btn-cancel:active {
+      background: rgba(224,85,85,0.22);
+      box-shadow: 0 0 20px var(--danger-glow);
+    }
+
+    /* ─── Footer ─── */
+    footer {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      padding: 16px 28px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4caf7d;
+      box-shadow: 0 0 6px rgba(76,175,125,0.7);
+    }
+
+    footer span {
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+  </style>
 </head>
 <body>
 
-<div class="emulador">
+  <header>
+    <div class="logo">e<span>park</span></div>
+    <div class="badge">Asistencia 24/7</div>
+  </header>
 
-  <div class="header">
-    <div class="header-title">
-      <div class="brand-mark">
-        <span class="brand-mark-dot"></span>
-        <span class="brand-mark-text">CONNECT</span>
+  <main>
+    <div class="status-ring">
+      <div class="status-dot"></div>
+    </div>
+
+    <h1 class="headline">¿Necesitás<br>ayuda?</h1>
+    <p class="subtext">Un agente de asistencia está disponible para atenderte de inmediato.</p>
+
+    <div class="btn-wrap">
+      <div class="halo"></div>
+      <div class="orbit"></div>
+      <button class="btn-help" onclick="solicitarAyuda()" aria-label="Solicitar ayuda">
+        <!-- Phone icon -->
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24 11.47 11.47 0 003.59.57 1 1 0 011 1V20a1 1 0 01-1 1C5.64 21 3 18.36 3 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1.01l-2.2 2.21z" fill="#1a1200"/>
+        </svg>
+        <span class="btn-label">Ayuda</span>
+      </button>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-dot"></div>
+    <span>Sistema activo • Cobertura nacional</span>
+  </footer>
+
+  <!-- Calling overlay -->
+  <div class="overlay" id="overlay">
+    <div class="calling-ring">
+      <div class="r"></div>
+      <div class="r"></div>
+      <div class="r"></div>
+      <div class="calling-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24 11.47 11.47 0 003.59.57 1 1 0 011 1V20a1 1 0 01-1 1C5.64 21 3 18.36 3 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1.01l-2.2 2.21z" fill="#1a1200"/>
+        </svg>
       </div>
-      <div class="header-divider"></div>
-      <div class="header-text">
-        <h1>Emulador de Redundancia de Voz</h1>
-        <small>Call Center · Carrier Optivón · Puerto Rico · Mayo 2026</small>
-      </div>
     </div>
-    <div class="header-right">
-      <div class="status-pill"><span class="status-dot"></span><span>SISTEMA EN VIVO</span></div>
-      <div class="clock" id="clock">--:--:--</div>
-    </div>
+
+    <p class="call-title">Conectando con asistencia…</p>
+    <p class="call-number">25046000</p>
+    <p class="call-status">Marcando</p>
+
+    <button class="btn-cancel" onclick="cancelarLlamada()">Cancelar llamada</button>
   </div>
 
-  <div class="scenarios">
-    <button class="scn-btn active normal" data-scn="normal">
-      <span class="scn-tag">📗 SITUACIÓN ACTUAL</span>
-      <span class="scn-desc">DID Numeración → Optivon T1 + T2 → Audara R1 + R2</span>
-    </button>
-    <button class="scn-btn plana" data-scn="plana">
-      <span class="scn-tag">🅰️ PLAN A · FALLA OPTIVÓN</span>
-      <span class="scn-desc">Falla total Carrier Optivón → Forward DID Principal a Audara → Troncal Audara</span>
-    </button>
-    <button class="scn-btn planb" data-scn="planb">
-      <span class="scn-tag">🅱️ PLAN B · FALLA OPTIVÓN + DID AUDARA</span>
-      <span class="scn-desc">Forward DID Principal → DID SIP Osnet → Sipa1 → Audara R1</span>
-    </button>
-    <button class="scn-btn planc" data-scn="planc">
-      <span class="scn-tag">🅲 PLAN C · FALLA OPTIVÓN + AUDARA</span>
-      <span class="scn-desc">Falla total Optivón + Audara → Forward SIP2 → Sipa2 → 3CX PBX → Agente</span>
-    </button>
-  </div>
-
-  <div class="scenario-info">
-    <span class="scn-name" id="scn-name">Situación Actual</span>
-    <span id="scn-desc">DID Numeración → Carrier Optivón Troncal 1 + Troncal 2 → Audara Región 1 (Digital Ocean) con Región 2 como backup → Call Center.</span>
-  </div>
-
-  <div class="canvas-wrap">
-    <svg viewBox="0 0 1020 600" xmlns="http://www.w3.org/2000/svg">
-
-      <!-- =========== DEFS =========== -->
-      <defs>
-        <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stop-color="#ffffff"/>
-          <stop offset="40%" stop-color="#ffffff"/>
-          <stop offset="100%" stop-color="#f1f5f9"/>
-        </linearGradient>
-
-        <linearGradient id="topBarNavy" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#1E3A6F"/><stop offset="50%" stop-color="#2A4A85"/><stop offset="100%" stop-color="#1E3A6F"/>
-        </linearGradient>
-        <linearGradient id="topBarOrange" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#E04F0F"/><stop offset="50%" stop-color="#FF8F5F"/><stop offset="100%" stop-color="#FF6B2C"/>
-        </linearGradient>
-        <linearGradient id="topBarBlue" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#3B7DCC"/><stop offset="50%" stop-color="#6BA0DD"/><stop offset="100%" stop-color="#3B7DCC"/>
-        </linearGradient>
-        <linearGradient id="topBarOrangeDeep" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#B83A0F"/><stop offset="50%" stop-color="#E04F0F"/><stop offset="100%" stop-color="#B83A0F"/>
-        </linearGradient>
-        <linearGradient id="topBarGreen" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#15803d"/><stop offset="50%" stop-color="#22c55e"/><stop offset="100%" stop-color="#15803d"/>
-        </linearGradient>
-        <linearGradient id="topBarFail" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#B91C1C"/><stop offset="50%" stop-color="#DC2626"/><stop offset="100%" stop-color="#B91C1C"/>
-        </linearGradient>
-        <linearGradient id="topBarMuted" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#94a3b8"/><stop offset="50%" stop-color="#cbd5e1"/><stop offset="100%" stop-color="#94a3b8"/>
-        </linearGradient>
-
-        <filter id="shadowNavy" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#1E3A6F" flood-opacity="0.20"/>
-          <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#1E3A6F" flood-opacity="0.13"/>
-          <feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#1E3A6F" flood-opacity="0.08"/>
-        </filter>
-        <filter id="shadowOrange" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#FF6B2C" flood-opacity="0.25"/>
-          <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#FF6B2C" flood-opacity="0.16"/>
-          <feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#FF6B2C" flood-opacity="0.10"/>
-        </filter>
-        <filter id="shadowBlue" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#3B7DCC" flood-opacity="0.22"/>
-          <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#3B7DCC" flood-opacity="0.14"/>
-          <feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#3B7DCC" flood-opacity="0.08"/>
-        </filter>
-        <filter id="shadowOrangeDeep" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#E04F0F" flood-opacity="0.26"/>
-          <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#E04F0F" flood-opacity="0.16"/>
-          <feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#E04F0F" flood-opacity="0.10"/>
-        </filter>
-        <filter id="shadowGreen" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#16a34a" flood-opacity="0.28"/>
-          <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#16a34a" flood-opacity="0.18"/>
-          <feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#16a34a" flood-opacity="0.10"/>
-        </filter>
-        <filter id="shadowFail" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#DC2626" flood-opacity="0.28"/>
-          <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#DC2626" flood-opacity="0.18"/>
-        </filter>
-        <filter id="shadowMuted" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#94a3b8" flood-opacity="0.18"/>
-        </filter>
-      </defs>
-
-      <!-- ============ PATHS ============ -->
-      <g id="paths">
-
-        <!-- ── SITUACIÓN NORMAL ──────────────────────── -->
-        <!-- p-cli-opt: el JS reescribe el atributo d según el escenario -->
-        <path id="p-cli-opt"  class="conn-path" d="M 140 270 L 200 270"/>
-        <path id="p-opt-t1"   class="conn-path" d="M 348 255 C 390 255, 390 213, 430 213"/>
-        <path id="p-opt-t2"   class="conn-path" d="M 348 285 C 390 285, 390 323, 430 323"/>
-        <path id="p-t1-r1"    class="conn-path" d="M 640 213 C 660 213, 660 220, 680 220"/>
-        <path id="p-t2-r1"    class="conn-path" d="M 640 323 C 660 323, 660 240, 680 240"/>
-        <path id="p-r1-r2"    class="conn-path dotted" d="M 760 265 L 760 295"/>
-        <path id="p-r1-cc"    class="conn-path" d="M 840 225 C 865 225, 865 265, 890 265"/>
-
-        <!-- ── PLAN A ────────────────────────────────── -->
-        <!-- Fallas dashed desde DID Principal hacia Troncales 1/2 fail -->
-        <path id="p-plana-fail-t1" class="conn-path" d="M 348 141 L 430 131"/>
-        <path id="p-plana-fail-t2" class="conn-path" d="M 348 141 C 390 141, 390 231, 430 231"/>
-        <!-- Forward: DID Principal → DID Audara curvando por la DERECHA (rail x=365) -->
-        <path id="p-did-fwd-audara" class="conn-path" d="M 348 141 C 365 141, 365 309, 348 309"/>
-        <!-- DID Audara → Troncal Audara -->
-        <path id="p-didaud-ta"  class="conn-path" d="M 348 309 C 390 309, 390 331, 430 331"/>
-        <!-- Troncal Audara → Audara R1 -->
-        <path id="p-opt-ta"     class="conn-path" d="M 640 331 C 660 331, 660 220, 680 220"/>
-        <!-- DID SIP → Sipa1 (dotted inactivo Plan A) -->
-        <path id="p-didsip-sipa" class="conn-path" d="M 348 429 C 390 429, 390 431, 430 431"/>
-
-        <!-- ── PLAN B ────────────────────────────────── -->
-        <!-- Forward: DID Principal → DID SIP curvando por la DERECHA (rail x=380) -->
-        <path id="p-did-fwd-sip"   class="conn-path" d="M 348 141 C 380 141, 380 429, 348 429"/>
-        <path id="p-didsip-sipa-b" class="conn-path" d="M 348 429 C 390 429, 390 431, 430 431"/>
-        <path id="p-sipa-r1"       class="conn-path" d="M 640 431 C 660 431, 660 230, 680 230"/>
-
-        <!-- ── PLAN C ────────────────────────────────── -->
-        <!-- Forward: DID Principal → DID SIP2 curvando por la DERECHA (rail x=395) -->
-        <path id="p-did-fwd-sip2"  class="conn-path" d="M 348 141 C 395 141, 395 516, 348 516"/>
-        <path id="p-sip2-sipa2"    class="conn-path" d="M 348 516 C 390 516, 390 521, 430 521"/>
-        <path id="p-sipa2-3cx"     class="conn-path" d="M 640 521 C 660 521, 660 420, 680 420"/>
-        <path id="p-3cx-agente"    class="conn-path" d="M 865 420 L 890 420"/>
-        <path id="p-planc-fail-r1" class="conn-path" d="M 640 131 C 660 131, 660 170, 680 170"/>
-        <path id="p-planc-fail-r2" class="conn-path" d="M 640 231 C 660 231, 660 288, 680 288"/>
-
-        <!-- IDs legacy (mantener para no romper refs) -->
-        <path id="p-opt-s1"  class="conn-path" d="M 348 270 L 430 270"/>
-        <path id="p-opt-s2"  class="conn-path" d="M 348 275 L 430 275"/>
-        <path id="p-s1-r1"   class="conn-path" d="M 640 431 C 660 431, 660 225, 680 225"/>
-        <path id="p-s2-r1"   class="conn-path" d="M 640 260 L 680 260"/>
-        <path id="p-opt-r1c" class="conn-path" d="M 348 141 L 430 141"/>
-        <path id="p-opt-r2c" class="conn-path" d="M 348 141 L 430 141"/>
-        <path id="p-opt-3cx" class="conn-path" d="M 348 141 L 430 141"/>
-        <path id="p-3cx-aR"  class="conn-path" d="M 640 141 L 680 141"/>
-        <path id="p-3cx-aH"  class="conn-path" d="M 640 141 L 680 141"/>
-        <path id="p-opt-n1"  class="conn-path" d="M 348 141 L 430 141"/>
-        <path id="p-opt-n2"  class="conn-path" d="M 348 141 L 430 141"/>
-        <path id="p-opt-n3"  class="conn-path" d="M 348 141 L 430 141"/>
-        <path id="p-opt-n4"  class="conn-path" d="M 348 141 L 430 141"/>
-        <path id="p-n1-r1"   class="conn-path" d="M 640 141 L 680 141"/>
-        <path id="p-n2-r1"   class="conn-path" d="M 640 141 L 680 141"/>
-        <path id="p-n3-r1"   class="conn-path" d="M 640 141 L 680 141"/>
-        <path id="p-n4-r1"   class="conn-path" d="M 640 141 L 680 141"/>
-
-      </g>
-
-      <!-- ============ NODES ============ -->
-
-      <!-- Cliente — centro y=270 -->
-      <g id="node-cliente">
-        <rect x="30" y="230" width="110" height="80" rx="10" fill="url(#cardGrad)" stroke="#1E3A6F" stroke-width="1.5" filter="url(#shadowNavy)"/>
-        <rect x="30" y="230" width="110" height="3" rx="1.5" fill="url(#topBarNavy)"/>
-        <text class="node-icon" x="85" y="261">📞</text>
-        <text class="node-label" x="85" y="284">Cliente</text>
-        <text class="node-sub" x="85" y="299">PSTN — PR</text>
-      </g>
-
-      <!-- DID Numeración (Situación Actual) — centro y=270 -->
-      <g id="node-optivon">
-        <rect x="200" y="225" width="148" height="90" rx="10" fill="url(#cardGrad)" stroke="#1E3A6F" stroke-width="1.5" filter="url(#shadowNavy)"/>
-        <rect x="200" y="225" width="148" height="3" rx="1.5" fill="url(#topBarNavy)"/>
-        <text class="node-icon" x="274" y="251">📋</text>
-        <text class="node-label" x="274" y="271">DID Numeración</text>
-        <text x="274" y="288" font-family="'JetBrains Mono','Consolas',monospace" font-size="8.5" font-weight="700" fill="#1E3A6F" text-anchor="middle">787-999-5050 Connect</text>
-        <text x="274" y="302" font-family="'JetBrains Mono','Consolas',monospace" font-size="8.5" font-weight="700" fill="#1E3A6F" text-anchor="middle">787-331-2050 · etc.</text>
-      </g>
-
-      <!-- Round Robin badge — pegado debajo del DID Numeración (no interfiere con curvas) -->
-      <g id="rr-badge">
-        <rect x="234" y="319" width="80" height="20" rx="10" fill="#EEF2FF" stroke="#1E3A6F" stroke-width="1" filter="url(#shadowNavy)"/>
-        <text x="274" y="333" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="8.5" font-weight="700" fill="#1E3A6F">⟲ ROUND ROBIN</text>
-      </g>
-
-      <!-- ===== TRONCALES NORMAL ===== -->
-      <g id="node-troncal1">
-        <rect x="430" y="185" width="210" height="56" rx="9" fill="url(#cardGrad)" stroke="#1E3A6F" stroke-width="1.5" filter="url(#shadowNavy)"/>
-        <rect x="430" y="185" width="210" height="3" rx="1.5" fill="url(#topBarNavy)"/>
-        <text class="node-icon" x="456" y="216">🔀</text>
-        <text x="474" y="208" class="node-label" style="text-anchor:start;">Carrier Optivón troncal 1</text>
-        <text x="474" y="223" class="node-mono" style="text-anchor:start;">208.80.236.173</text>
-        <text x="474" y="236" class="node-sub" style="text-anchor:start;">SIP · Round Robin</text>
-      </g>
-
-      <g id="node-troncal2">
-        <rect x="430" y="295" width="210" height="56" rx="9" fill="url(#cardGrad)" stroke="#1E3A6F" stroke-width="1.5" filter="url(#shadowNavy)"/>
-        <rect x="430" y="295" width="210" height="3" rx="1.5" fill="url(#topBarNavy)"/>
-        <text class="node-icon" x="456" y="326">🔀</text>
-        <text x="474" y="318" class="node-label" style="text-anchor:start;">Carrier Optivón troncal 2</text>
-        <text x="474" y="333" class="node-mono" style="text-anchor:start;">208.80.236.174</text>
-        <text x="474" y="346" class="node-sub" style="text-anchor:start;">SIP · Round Robin</text>
-      </g>
-
-      <!-- ===== NODOS PLAN A/B/C ===== -->
-
-      <!-- DID Principal — y=100-182, centro=141 -->
-      <g id="node-did-principal" style="display:none;">
-        <rect x="200" y="100" width="148" height="82" rx="10" fill="url(#cardGrad)" stroke="#DC2626" stroke-width="1.5" filter="url(#shadowFail)"/>
-        <rect x="200" y="100" width="148" height="3" rx="1.5" fill="url(#topBarFail)"/>
-        <text class="node-icon" x="274" y="125">📋</text>
-        <text class="node-label" x="274" y="143" style="fill:#991b1b;">DID Principal</text>
-        <text x="274" y="157" font-family="'JetBrains Mono','Consolas',monospace" font-size="8" font-weight="700" fill="#991b1b" text-anchor="middle">787-999-5050 Connect</text>
-        <text x="274" y="169" font-family="'JetBrains Mono','Consolas',monospace" font-size="8" font-weight="700" fill="#991b1b" text-anchor="middle">787-331-2050 · etc.</text>
-      </g>
-
-      <!-- DID Sec. Audara — y=270-348, centro=309 -->
-      <g id="node-did-audara" style="display:none;">
-        <rect x="200" y="270" width="148" height="78" rx="10" fill="url(#cardGrad)" stroke="#FF6B2C" stroke-width="1.5" filter="url(#shadowOrange)"/>
-        <rect x="200" y="270" width="148" height="3" rx="1.5" fill="url(#topBarOrange)"/>
-        <text class="node-icon" x="274" y="296">☁️</text>
-        <text class="node-label" x="274" y="314" style="fill:#B83A0F;">DID Sec. Audara</text>
-        <text x="274" y="327" font-family="Inter,sans-serif" font-size="9" fill="#E04F0F" text-anchor="middle">Numeración Audara PR</text>
-        <text x="274" y="339" font-family="'JetBrains Mono','Consolas',monospace" font-size="8" font-weight="700" fill="#E04F0F" text-anchor="middle">787-6xx-xxxx</text>
-      </g>
-
-      <!-- DID Sec. SIP — y=390-468, centro=429 -->
-      <g id="node-did-sip" style="display:none;">
-        <rect x="200" y="390" width="148" height="78" rx="10" fill="url(#cardGrad)" stroke="#3B7DCC" stroke-width="1.5" filter="url(#shadowBlue)"/>
-        <rect x="200" y="390" width="148" height="3" rx="1.5" fill="url(#topBarBlue)"/>
-        <text class="node-icon" x="274" y="417">📡</text>
-        <text class="node-label" x="274" y="435" style="fill:#1E3A6F;">DID Secundario SIP</text>
-        <text x="274" y="448" font-family="Inter,sans-serif" font-size="9" fill="#3B7DCC" text-anchor="middle">Osnet / WorldNet</text>
-        <text x="274" y="460" font-family="'JetBrains Mono','Consolas',monospace" font-size="8" font-weight="700" fill="#3B7DCC" text-anchor="middle">sipa.osnetpr.com</text>
-      </g>
-
-      <!-- DID Sec. SIP2 — y=480-552 (Plan C, cuarta caja) -->
-      <g id="node-did-sip2" style="display:none;">
-        <rect x="200" y="480" width="148" height="72" rx="10" fill="url(#cardGrad)" stroke="#16a34a" stroke-width="1.5" filter="url(#shadowGreen)"/>
-        <rect x="200" y="480" width="148" height="3" rx="1.5" fill="url(#topBarGreen)"/>
-        <text class="node-icon" x="274" y="505">📡</text>
-        <text class="node-label" x="274" y="523" style="fill:#15803d;">DID Sec. SIP2</text>
-        <text x="274" y="536" font-family="'JetBrains Mono','Consolas',monospace" font-size="8" font-weight="700" fill="#16a34a" text-anchor="middle">sipa2.osnetpr.com</text>
-      </g>
-
-      <!-- Troncal 1 FALLA — y=100 -->
-      <g id="node-troncal1-fail" style="display:none;">
-        <rect x="430" y="100" width="210" height="62" rx="9" fill="url(#cardGrad)" stroke="#DC2626" stroke-width="1.5" filter="url(#shadowFail)"/>
-        <rect x="430" y="100" width="210" height="3" rx="1.5" fill="url(#topBarFail)"/>
-        <text class="node-icon" x="455" y="131" opacity="0.45">🔀</text>
-        <text x="473" y="122" class="node-label" style="text-anchor:start;fill:#991b1b;">Carrier Optivón troncal 1</text>
-        <text x="473" y="137" class="node-mono" style="text-anchor:start;fill:#DC2626;">208.80.236.173</text>
-        <text x="473" y="152" font-family="'JetBrains Mono',monospace" font-size="9.5" font-weight="700" fill="#DC2626" text-anchor="start">FALLA DETECTADA</text>
-        <text x="626" y="143" text-anchor="middle" font-size="30" fill="#DC2626" font-weight="700" opacity="0.9">✕</text>
-      </g>
-
-      <!-- Troncal 2 FALLA — y=200 -->
-      <g id="node-troncal2-fail" style="display:none;">
-        <rect x="430" y="200" width="210" height="62" rx="9" fill="url(#cardGrad)" stroke="#DC2626" stroke-width="1.5" filter="url(#shadowFail)"/>
-        <rect x="430" y="200" width="210" height="3" rx="1.5" fill="url(#topBarFail)"/>
-        <text class="node-icon" x="455" y="231" opacity="0.45">🔀</text>
-        <text x="473" y="222" class="node-label" style="text-anchor:start;fill:#991b1b;">Carrier Optivón troncal 2</text>
-        <text x="473" y="237" class="node-mono" style="text-anchor:start;fill:#DC2626;">208.80.236.174</text>
-        <text x="473" y="252" font-family="'JetBrains Mono',monospace" font-size="9.5" font-weight="700" fill="#DC2626" text-anchor="start">FALLA DETECTADA</text>
-        <text x="626" y="243" text-anchor="middle" font-size="30" fill="#DC2626" font-weight="700" opacity="0.9">✕</text>
-      </g>
-
-      <!-- Troncal Audara — Plan A/B, y=300-362 -->
-      <g id="node-troncal-audara" style="display:none;">
-        <rect x="430" y="300" width="210" height="62" rx="9" fill="url(#cardGrad)" stroke="#FF6B2C" stroke-width="1.5" filter="url(#shadowOrange)"/>
-        <rect x="430" y="300" width="210" height="3" rx="1.5" fill="url(#topBarOrange)"/>
-        <text class="node-icon" x="455" y="331">☁️</text>
-        <text x="473" y="323" class="node-label" style="text-anchor:start;">Troncal Audara</text>
-        <text x="473" y="338" class="node-mono" style="text-anchor:start;">troncal.audara.com</text>
-        <text x="473" y="353" class="node-sub" style="text-anchor:start;">Troncal directa SIP</text>
-      </g>
-
-      <!-- Osnet Sipa1 — Plan A/B/C, y=400-462 -->
-      <g id="node-osnet-s1" style="display:none;">
-        <rect x="430" y="400" width="210" height="62" rx="9" fill="url(#cardGrad)" stroke="#3B7DCC" stroke-width="1.5" filter="url(#shadowBlue)"/>
-        <rect x="430" y="400" width="210" height="3" rx="1.5" fill="url(#topBarBlue)"/>
-        <text class="node-icon" x="455" y="431">📡</text>
-        <text x="473" y="423" class="node-label" style="text-anchor:start;">Osnet troncal Sipa1</text>
-        <text x="473" y="438" class="node-mono" style="text-anchor:start;">sipa.osnetpr.com</text>
-        <text x="473" y="453" class="node-sub" style="text-anchor:start;">Proveedor Osnet · SIP</text>
-      </g>
-
-      <!-- Osnet Sipa2 — Plan C, y=490-552 -->
-      <g id="node-osnet-sipa2" style="display:none;">
-        <rect x="430" y="490" width="210" height="62" rx="9" fill="url(#cardGrad)" stroke="#16a34a" stroke-width="1.5" filter="url(#shadowGreen)"/>
-        <rect x="430" y="490" width="210" height="3" rx="1.5" fill="url(#topBarGreen)"/>
-        <text class="node-icon" x="455" y="521">📡</text>
-        <text x="473" y="513" class="node-label" style="text-anchor:start;fill:#15803d;">Osnet troncal Sipa2</text>
-        <text x="473" y="528" class="node-mono" style="text-anchor:start;fill:#16a34a;">sipa2.osnetpr.com</text>
-        <text x="473" y="543" class="node-sub" style="text-anchor:start;">Proveedor Osnet · SIP</text>
-      </g>
-
-      <!-- Audara R1 — Normal/A/B, y=185-265 -->
-      <g id="node-audara-r1">
-        <rect x="680" y="185" width="160" height="80" rx="10" fill="url(#cardGrad)" stroke="#1E3A6F" stroke-width="1.5" filter="url(#shadowNavy)" id="audara-r1-rect"/>
-        <rect x="680" y="185" width="160" height="3" rx="1.5" fill="url(#topBarNavy)" id="audara-r1-bar"/>
-        <text class="node-icon" x="760" y="214">☁️</text>
-        <text class="node-label" x="760" y="235">Audara · Región 1</text>
-        <text class="node-sub" x="760" y="249">Digital Ocean</text>
-        <text class="node-mono" x="760" y="261">Troncales SIP</text>
-      </g>
-
-      <!-- Audara R2 — Normal/A/B, y=295-375 -->
-      <g id="node-audara-r2">
-        <rect x="680" y="295" width="160" height="80" rx="10" fill="url(#cardGrad)" stroke="#1E3A6F" stroke-width="1.5" filter="url(#shadowNavy)" id="audara-r2-rect"/>
-        <rect x="680" y="295" width="160" height="3" rx="1.5" fill="url(#topBarNavy)" id="audara-r2-bar"/>
-        <text class="node-icon" x="760" y="324">☁️</text>
-        <text class="node-label" x="760" y="345">Audara · Región 2</text>
-        <text class="node-sub" x="760" y="359">Backup región</text>
-        <text class="node-mono" x="760" y="371">Standby</text>
-      </g>
-
-      <!-- Audara R1 FALLA Plan C — mismas coords que normal R1 -->
-      <g id="node-audara-r1-fail-c" style="display:none;">
-        <rect x="680" y="130" width="160" height="80" rx="10" fill="url(#cardGrad)" stroke="#DC2626" stroke-width="1.5" filter="url(#shadowFail)"/>
-        <rect x="680" y="130" width="160" height="3" rx="1.5" fill="url(#topBarFail)"/>
-        <text class="node-icon" x="760" y="158" opacity="0.45">☁️</text>
-        <text class="node-label" x="760" y="178" style="fill:#991b1b;">Audara · Región 1</text>
-        <text class="node-sub" x="760" y="192" style="fill:#b91c1c;">Digital Ocean — FALLA</text>
-        <text x="760" y="186" text-anchor="middle" font-size="36" fill="#DC2626" font-weight="700" opacity="0.85">✕</text>
-      </g>
-
-      <!-- Audara R2 FALLA Plan C -->
-      <g id="node-audara-r2-fail-c" style="display:none;">
-        <rect x="680" y="248" width="160" height="80" rx="10" fill="url(#cardGrad)" stroke="#DC2626" stroke-width="1.5" filter="url(#shadowFail)"/>
-        <rect x="680" y="248" width="160" height="3" rx="1.5" fill="url(#topBarFail)"/>
-        <text class="node-icon" x="760" y="276" opacity="0.45">☁️</text>
-        <text class="node-label" x="760" y="296" style="fill:#991b1b;">Audara · Región 2</text>
-        <text class="node-sub" x="760" y="310" style="fill:#b91c1c;">Backup — FALLA</text>
-        <text x="760" y="304" text-anchor="middle" font-size="36" fill="#DC2626" font-weight="700" opacity="0.85">✕</text>
-      </g>
-
-      <!-- 3CX PBX Plan C — y=380-460, centro vertical 420 -->
-      <g id="node-3cx-planc" style="display:none;">
-        <rect x="680" y="380" width="185" height="80" rx="10" fill="url(#cardGrad)" stroke="#16a34a" stroke-width="1.5" filter="url(#shadowGreen)"/>
-        <rect x="680" y="380" width="185" height="3" rx="1.5" fill="url(#topBarGreen)"/>
-        <text class="node-icon" x="772" y="408">🖧</text>
-        <text class="node-label" x="772" y="428" style="fill:#15803d;">3CX PBX</text>
-        <text class="node-sub" x="772" y="442">Cuadro alternativo · OPERATIVO</text>
-      </g>
-
-      <!-- Agente 3CX — y=390-450 -->
-      <g id="node-agente-3cx" style="display:none;">
-        <rect x="890" y="390" width="110" height="60" rx="10" fill="url(#cardGrad)" stroke="#16a34a" stroke-width="1.5" filter="url(#shadowGreen)"/>
-        <rect x="890" y="390" width="110" height="3" rx="1.5" fill="url(#topBarGreen)"/>
-        <text class="node-icon" x="945" y="414">👤</text>
-        <text class="node-label" x="945" y="432" style="fill:#15803d;">Agente</text>
-        <text class="node-sub" x="945" y="444" style="fill:#16a34a;">Conectado 3CX</text>
-      </g>
-
-      <!-- Call Center -->
-      <g id="node-callcenter">
-        <rect x="890" y="225" width="110" height="80" rx="10" fill="url(#cardGrad)" stroke="#1E3A6F" stroke-width="1.5" filter="url(#shadowNavy)"/>
-        <rect x="890" y="225" width="110" height="3" rx="1.5" fill="url(#topBarNavy)"/>
-        <text class="node-icon" x="945" y="256">👥</text>
-        <text class="node-label" x="945" y="278">Call Center</text>
-        <text class="node-sub" x="945" y="292">Agentes</text>
-      </g>
-
-      <!-- ===== BADGES ===== -->
-
-      <!-- Plan A: FALLA CARRIER badge — entre troncal 1 y troncal 2 fail -->
-      <g id="plana-fail-badge" style="display:none;">
-        <rect x="467" y="170" width="136" height="22" rx="11" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.2" filter="url(#shadowFail)"/>
-        <text x="535" y="185" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" font-weight="700" fill="#991b1b">✕ FALLA CARRIER</text>
-      </g>
-
-      <!-- Plan A: FWD AUDARA badge — sobre el rail de forward (x=365) en gap libre -->
-      <g id="plana-fwd-badge" style="display:none;">
-        <rect x="355" y="270" width="120" height="22" rx="11" fill="#FFE4D2" stroke="#FF6B2C" stroke-width="1.2" filter="url(#shadowOrange)"/>
-        <text x="415" y="285" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" font-weight="700" fill="#B83A0F">↻ FORWARD AUDARA</text>
-      </g>
-
-      <!-- Plan B: FALLA DID AUDARA badge -->
-      <g id="planb-did-audara-fail-badge" style="display:none;">
-        <rect x="198" y="356" width="152" height="22" rx="11" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.2" filter="url(#shadowFail)"/>
-        <text x="274" y="371" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" font-weight="700" fill="#991b1b">✕ FALLA DID AUDARA</text>
-      </g>
-
-      <!-- Plan B: FWD SIP badge — sobre el rail x=380 en zona libre vertical -->
-      <g id="planb-fwd-sip-badge" style="display:none;">
-        <rect x="367" y="270" width="100" height="22" rx="11" fill="#E0EBF8" stroke="#3B7DCC" stroke-width="1.2" filter="url(#shadowBlue)"/>
-        <text x="417" y="285" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" font-weight="700" fill="#1E3A6F">↻ FORWARD SIP</text>
-      </g>
-
-      <!-- Plan C: FWD SIP2 badge — sobre el rail x=395 en zona libre vertical -->
-      <g id="planc-fwd-badge" style="display:none;">
-        <rect x="375" y="270" width="110" height="22" rx="11" fill="#D1FAE5" stroke="#16a34a" stroke-width="1.2" filter="url(#shadowGreen)"/>
-        <text x="430" y="285" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" font-weight="700" fill="#15803d">↻ FORWARD SIP2</text>
-      </g>
-
-      <!-- Plan C: AUDARA TOTAL FAIL badge -->
-      <g id="planc-audara-fail-badge" style="display:none;">
-        <rect x="680" y="342" width="160" height="22" rx="11" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.2" filter="url(#shadowFail)"/>
-        <text x="760" y="357" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" font-weight="700" fill="#991b1b">⚠ AUDARA TOTAL FAIL</text>
-      </g>
-
-      <!-- AUDARA FAILED overlay (legacy) -->
-      <g id="audara-failed" style="display:none;">
-        <text x="760" y="232" text-anchor="middle" font-size="38" fill="#DC2626" font-weight="700" opacity="0.85">✕</text>
-        <text x="760" y="342" text-anchor="middle" font-size="38" fill="#DC2626" font-weight="700" opacity="0.85">✕</text>
-      </g>
-
-      <!-- ===== INFO BANNERS ===== -->
-      <g id="osnet-info" style="display:none;">
-        <rect x="350" y="430" width="380" height="44" rx="9" fill="url(#cardGrad)" stroke="#3B7DCC" stroke-width="1.2" filter="url(#shadowBlue)"/>
-        <rect x="350" y="430" width="380" height="3" rx="1.5" fill="url(#topBarBlue)"/>
-        <text x="364" y="452" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#1E3A6F">📡 Troncal Osnet (WorldNet)</text>
-        <text x="364" y="466" font-family="'JetBrains Mono', monospace" font-size="10" fill="#3B7DCC">sipa.osnetpr.com · 192.254.96.6</text>
-      </g>
-
-      <g id="audpr-info" style="display:none;">
-        <rect x="350" y="430" width="380" height="44" rx="9" fill="url(#cardGrad)" stroke="#FF6B2C" stroke-width="1.2" filter="url(#shadowOrange)"/>
-        <rect x="350" y="430" width="380" height="3" rx="1.5" fill="url(#topBarOrange)"/>
-        <text x="364" y="452" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#B83A0F">📲 Números PR provistos por Audara</text>
-        <text x="364" y="466" font-family="Inter, sans-serif" font-size="10" fill="#E04F0F">Contingencia de carrier · Forward desde Optivon</text>
-      </g>
-
-      <!-- Agentes Road/Home (legacy, ocultos por default) -->
-      <g id="node-agentes-road" style="display:none;">
-        <rect x="825" y="145" width="155" height="70" rx="10" fill="url(#cardGrad)" stroke="#16a34a" stroke-width="1.5" filter="url(#shadowGreen)"/>
-        <rect x="825" y="145" width="155" height="3" rx="1.5" fill="url(#topBarGreen)"/>
-        <text class="node-icon" x="902" y="176">🚗</text>
-        <text class="node-label" x="902" y="196">Agentes ROAD</text>
-        <text class="node-sub" x="902" y="208" style="fill:#15803d;">Recibiendo vía 3CX</text>
-      </g>
-
-      <g id="node-agentes-home" style="display:none;">
-        <rect x="825" y="325" width="155" height="70" rx="10" fill="url(#cardGrad)" stroke="#16a34a" stroke-width="1.5" filter="url(#shadowGreen)"/>
-        <rect x="825" y="325" width="155" height="3" rx="1.5" fill="url(#topBarGreen)"/>
-        <text class="node-icon" x="902" y="356">🏠</text>
-        <text class="node-label" x="902" y="376">Agentes HOME</text>
-        <text class="node-sub" x="902" y="388" style="fill:#15803d;">Recibiendo vía 3CX</text>
-      </g>
-
-      <!-- FiberX provider note (siempre visible) -->
-      <g id="fiberx-info">
-        <rect x="20" y="565" width="320" height="26" rx="13" fill="url(#cardGrad)" stroke="#94a3b8" stroke-width="1" filter="url(#shadowMuted)"/>
-        <text x="34" y="582" font-family="Inter, sans-serif" font-size="10" fill="#475569">
-          <tspan font-weight="700" fill="#1E3A6F">⚡ FiberX</tspan>
-          <tspan dx="6">· Administración de servicios de voz e internet</tspan>
-        </text>
-      </g>
-
-      <!-- LAYERS para animación -->
-      <g id="trails"></g>
-      <g id="pulses"></g>
-      <g id="packets"></g>
-
-    </svg>
-  </div>
-
-  <div class="footer">
-    <div class="legend">
-      <div class="legend-item"><div class="legend-dot navy"></div>Situación Actual</div>
-      <div class="legend-item"><div class="legend-dot orange"></div>Plan A · Falla Optivón</div>
-      <div class="legend-item"><div class="legend-dot blue"></div>Plan B · Falla Optivón + DID Audara</div>
-      <div class="legend-item"><div class="legend-dot red"></div>Plan C · Falla Total</div>
-    </div>
-    <div class="footer-note">Selecciona un escenario para simular el flujo de llamadas</div>
-  </div>
-
-</div>
-
-<script>
-const packetsLayer = document.getElementById('packets');
-const trailsLayer = document.getElementById('trails');
-const pulsesLayer = document.getElementById('pulses');
-let currentScenario = 'normal';
-
-const colorMap = {
-  navy:        { stroke: '#1E3A6F', filter: 'url(#shadowNavy)',        bar: 'url(#topBarNavy)' },
-  orange:      { stroke: '#FF6B2C', filter: 'url(#shadowOrange)',      bar: 'url(#topBarOrange)' },
-  blue:        { stroke: '#3B7DCC', filter: 'url(#shadowBlue)',        bar: 'url(#topBarBlue)' },
-  'orange-deep': { stroke: '#E04F0F', filter: 'url(#shadowOrangeDeep)', bar: 'url(#topBarOrangeDeep)' },
-  fail:        { stroke: '#DC2626', filter: 'url(#shadowFail)',        bar: 'url(#topBarFail)' },
-  muted:       { stroke: '#94a3b8', filter: 'url(#shadowMuted)',       bar: 'url(#topBarMuted)' }
-};
-
-// Coordenadas dinámicas para p-cli-opt segun escenario:
-// - normal: cliente → DID Numeración (recto a y=270)
-// - planes A/B/C: cliente → DID Principal (curva subiendo a y=141)
-const cliOptPaths = {
-  normal: 'M 140 270 L 200 270',
-  plana:  'M 140 270 C 175 270, 175 141, 200 141',
-  planb:  'M 140 270 C 175 270, 175 141, 200 141',
-  planc:  'M 140 270 C 175 270, 175 141, 200 141'
-};
-
-const scenarios = {
-  normal: {
-    name: 'Situación Actual',
-    desc: 'DID Numeración → Carrier Optivón Troncal 1 + Troncal 2 → Audara Región 1 (Digital Ocean) con Región 2 como backup → Call Center.',
-    visibleNodes: ['node-cliente','node-optivon','rr-badge','node-troncal1','node-troncal2','node-audara-r1','node-audara-r2','node-callcenter','fiberx-info'],
-    activePaths: {
-      'p-cli-opt':'navy',
-      'p-opt-t1':'navy','p-opt-t2':'navy',
-      'p-t1-r1':'navy','p-t2-r1':'navy',
-      'p-r1-cc':'navy','p-r1-r2':'dotted'
-    },
-    routes: [
-      { pathIds: ['p-cli-opt','p-opt-t1','p-t1-r1','p-r1-cc'], weight: 0.50 },
-      { pathIds: ['p-cli-opt','p-opt-t2','p-t2-r1','p-r1-cc'], weight: 0.50 }
-    ],
-    packetColor: '#1E3A6F',
-    r1Color: 'navy', r2Color: 'muted'
-  },
-  plana: {
-    name: 'Plan A · Falla Carrier Optivón',
-    desc: 'Falla total en Carrier Optivón. La llamada ingresa por DID Principal → forward a DID Secundario Audara → Troncal Audara → Audara Región 1 → Call Center. DID SIP visible pero no activo.',
-    visibleNodes: [
-      'node-cliente','node-did-principal','node-did-sip','node-did-audara',
-      'node-troncal1-fail','node-troncal2-fail',
-      'node-osnet-s1',
-      'node-troncal-audara',
-      'node-audara-r1','node-audara-r2','node-callcenter',
-      'plana-fail-badge','plana-fwd-badge','fiberx-info'
-    ],
-    activePaths: {
-      'p-cli-opt':'orange',
-      'p-plana-fail-t1':'fail', 'p-plana-fail-t2':'fail',
-      'p-did-fwd-audara':'orange',
-      'p-didaud-ta':'orange',
-      'p-opt-ta':'orange',
-      'p-r1-cc':'orange','p-r1-r2':'dotted',
-      'p-didsip-sipa':'dotted'
-    },
-    routes: [
-      { pathIds: ['p-cli-opt','p-did-fwd-audara','p-didaud-ta','p-opt-ta','p-r1-cc'], weight: 1.0 }
-    ],
-    packetColor: '#FF6B2C',
-    r1Color: 'orange', r2Color: 'muted'
-  },
-  planb: {
-    name: 'Plan B · Falla Optivón + Falla DID Audara',
-    desc: 'Falla total Carrier Optivón y falla en DID Audara. DID Principal hace forward a DID Secundario SIP (Osnet/WorldNet) → Troncal Sipa1 → Audara Región 1 → Call Center.',
-    visibleNodes: [
-      'node-cliente','node-did-principal','node-did-audara','node-did-sip',
-      'node-troncal1-fail','node-troncal2-fail',
-      'node-troncal-audara',
-      'node-osnet-s1',
-      'node-audara-r1','node-audara-r2','node-callcenter',
-      'plana-fail-badge','planb-did-audara-fail-badge','planb-fwd-sip-badge','fiberx-info'
-    ],
-    activePaths: {
-      'p-cli-opt':'blue',
-      'p-plana-fail-t1':'fail','p-plana-fail-t2':'fail',
-      'p-did-fwd-sip':'blue',
-      'p-didsip-sipa-b':'blue',
-      'p-sipa-r1':'blue',
-      'p-r1-cc':'blue','p-r1-r2':'dotted',
-      'p-didaud-ta':'fail'
-    },
-    routes: [
-      { pathIds: ['p-cli-opt','p-did-fwd-sip','p-didsip-sipa-b','p-sipa-r1','p-r1-cc'], weight: 1.0 }
-    ],
-    packetColor: '#3B7DCC',
-    r1Color: 'blue', r2Color: 'muted',
-    didAudaraFail: true
-  },
-  planc: {
-    name: 'Plan C · Falla Optivón + Falla Total Audara',
-    desc: 'Falla total en Carrier Optivón y falla total en Audara (R1 + R2). DID Principal hace forward a DID Sec. SIP2 → Troncal Sipa2 → 3CX PBX → Agente. DID SIP y DID Audara visibles como fallados.',
-    visibleNodes: [
-      'node-cliente',
-      'node-did-principal','node-did-audara','node-did-sip','node-did-sip2',
-      'node-troncal1-fail','node-troncal2-fail',
-      'node-troncal-audara','node-osnet-s1',
-      'node-osnet-sipa2',
-      'node-audara-r1-fail-c','node-audara-r2-fail-c',
-      'node-3cx-planc','node-agente-3cx',
-      'plana-fail-badge','planb-did-audara-fail-badge',
-      'planc-audara-fail-badge','planc-fwd-badge','fiberx-info'
-    ],
-    activePaths: {
-      'p-cli-opt':'green',
-      'p-plana-fail-t1':'fail','p-plana-fail-t2':'fail',
-      'p-did-fwd-sip2':'green',
-      'p-sip2-sipa2':'green',
-      'p-sipa2-3cx':'green',
-      'p-3cx-agente':'green',
-      'p-planc-fail-r1':'fail','p-planc-fail-r2':'fail',
-      'p-didaud-ta':'fail',
-      'p-didsip-sipa':'dotted'
-    },
-    routes: [
-      { pathIds: ['p-cli-opt','p-did-fwd-sip2','p-sip2-sipa2','p-sipa2-3cx','p-3cx-agente'], weight: 1.0 }
-    ],
-    packetColor: '#16a34a',
-    didAudaraFail: true,
-    didSipMuted: true,
-    r1Color: 'navy', r2Color: 'muted'
-  }
-};
-
-function updateClock() {
-  const now = new Date();
-  const h = String(now.getHours()).padStart(2,'0');
-  const m = String(now.getMinutes()).padStart(2,'0');
-  const s = String(now.getSeconds()).padStart(2,'0');
-  document.getElementById('clock').textContent = `${h}:${m}:${s} · LIVE`;
-}
-setInterval(updateClock, 1000);
-updateClock();
-
-function applyNodeStyle(rect, bar, colorKey) {
-  const c = colorMap[colorKey];
-  if (!c || !rect) return;
-  rect.setAttribute('stroke', c.stroke);
-  rect.setAttribute('filter', c.filter);
-  if (bar) bar.setAttribute('fill', c.bar);
-}
-
-function setScenario(scn) {
-  currentScenario = scn;
-  const cfg = scenarios[scn];
-
-  document.querySelectorAll('.scn-btn').forEach(b => b.classList.toggle('active', b.dataset.scn === scn));
-  document.getElementById('scn-name').textContent = cfg.name;
-  document.getElementById('scn-desc').textContent = cfg.desc;
-
-  // Actualizar geometría dinámica de p-cli-opt según escenario
-  const cliOpt = document.getElementById('p-cli-opt');
-  if (cliOpt && cliOptPaths[scn]) {
-    cliOpt.setAttribute('d', cliOptPaths[scn]);
-  }
-
-  const allNodes = ['node-cliente','node-optivon','rr-badge',
-                    'node-troncal1','node-troncal2','node-osnet-s1','node-osnet-s2','node-troncal-audara',
-                    'node-num1','node-num2','node-num3','node-num4',
-                    'node-did-principal','node-did-sip','node-did-audara','node-did-sip2',
-                    'node-troncal1-fail','node-troncal2-fail',
-                    'plana-fail-badge','plana-fwd-badge',
-                    'planb-did-audara-fail-badge','planb-fwd-sip-badge',
-                    'planc-fwd-badge','planc-audara-fail-badge',
-                    'node-osnet-sipa2','node-3cx-planc','node-agente-3cx',
-                    'node-audara-r1-fail-c','node-audara-r2-fail-c',
-                    'node-3cx','node-audara-r1','node-audara-r2','node-callcenter',
-                    'node-audara-r1c','node-audara-r2c','audara-failed-label','redirect-badge',
-                    'node-agentes-road','node-agentes-home',
-                    'forward-badge','osnet-info','audpr-info','audara-failed','fiberx-info'];
-  allNodes.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.style.display = cfg.visibleNodes.includes(id) ? '' : 'none';
-  });
-
-  // Update Audara regions
-  const r1Rect = document.getElementById('audara-r1-rect');
-  const r1Bar = document.getElementById('audara-r1-bar');
-  const r2Rect = document.getElementById('audara-r2-rect');
-  const r2Bar = document.getElementById('audara-r2-bar');
-  if (cfg.audaraFailed) {
-    applyNodeStyle(r1Rect, r1Bar, 'fail');
-    applyNodeStyle(r2Rect, r2Bar, 'fail');
-  } else {
-    applyNodeStyle(r1Rect, r1Bar, cfg.r1Color || 'navy');
-    applyNodeStyle(r2Rect, r2Bar, cfg.r2Color || 'muted');
-  }
-
-  // Plan B/C: DID Audara aparece en rojo si didAudaraFail
-  const didAudaraNode = document.getElementById('node-did-audara');
-  if (didAudaraNode) {
-    const rects = didAudaraNode.querySelectorAll('rect');
-    const rect = rects[0];
-    const bar  = rects[1];
-    if (cfg.didAudaraFail) {
-      applyNodeStyle(rect, bar, 'fail');
-      didAudaraNode.querySelectorAll('text').forEach(t => {
-        if (t.classList.contains('node-label')) t.style.fill = '#991b1b';
-      });
-    } else {
-      applyNodeStyle(rect, bar, 'orange');
-      didAudaraNode.querySelectorAll('text').forEach(t => {
-        if (t.classList.contains('node-label')) t.style.fill = '#B83A0F';
-      });
-    }
-  }
-
-  // Plan C: DID SIP aparece en muted (inactivo)
-  const didSipNode = document.getElementById('node-did-sip');
-  if (didSipNode) {
-    const rects = didSipNode.querySelectorAll('rect');
-    const rect = rects[0];
-    const bar  = rects[1];
-    if (cfg.didSipMuted) {
-      applyNodeStyle(rect, bar, 'muted');
-    } else {
-      applyNodeStyle(rect, bar, 'blue');
-    }
-  }
-
-  // Reset all paths and hide those not used in this scenario
-  document.querySelectorAll('.conn-path').forEach(p => {
-    p.classList.remove('navy','orange','blue','orange-deep','green','fail','dotted','inactive');
-    if (cfg.activePaths[p.id]) {
-      p.style.display = '';
-    } else {
-      p.style.display = 'none';
-    }
-  });
-  // Activate scenario paths
-  for (const [pid, cls] of Object.entries(cfg.activePaths)) {
-    const p = document.getElementById(pid);
-    if (p) { p.classList.add(cls); }
-  }
-
-  packetsLayer.innerHTML = '';
-  trailsLayer.innerHTML = '';
-  pulsesLayer.innerHTML = '';
-}
-
-document.querySelectorAll('.scn-btn').forEach(btn => {
-  btn.addEventListener('click', () => setScenario(btn.dataset.scn));
-});
-
-// PACKET ANIMATION
-function spawnTrail(x, y, color) {
-  const trail = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  trail.setAttribute('cx', x);
-  trail.setAttribute('cy', y);
-  trail.setAttribute('r', 4);
-  trail.setAttribute('fill', color);
-  trail.setAttribute('opacity', '0.45');
-  trail.setAttribute('filter', `drop-shadow(0 0 4px ${color})`);
-  trailsLayer.appendChild(trail);
-
-  let opacity = 0.45;
-  let r = 4;
-  const fade = setInterval(() => {
-    opacity -= 0.06;
-    r += 0.12;
-    trail.setAttribute('opacity', opacity);
-    trail.setAttribute('r', r);
-    if (opacity <= 0) { clearInterval(fade); trail.remove(); }
-  }, 50);
-}
-
-function spawnPacket() {
-  const cfg = scenarios[currentScenario];
-  if (!cfg.routes || cfg.routes.length === 0) return;
-
-  let route;
-  const r = Math.random();
-  let acc = 0;
-  for (const rt of cfg.routes) {
-    acc += rt.weight;
-    if (r <= acc) { route = rt; break; }
-  }
-  if (!route) route = cfg.routes[0];
-
-  const paths = route.pathIds.map(id => document.getElementById(id)).filter(Boolean);
-  if (paths.length === 0) return;
-  const lengths = paths.map(p => p.getTotalLength());
-  const total = lengths.reduce((a,b)=>a+b, 0);
-
-  // Outer glow
-  const glow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  glow.setAttribute('r', '10');
-  glow.setAttribute('fill', cfg.packetColor);
-  glow.setAttribute('opacity', '0.25');
-  glow.setAttribute('filter', `blur(4px)`);
-  packetsLayer.appendChild(glow);
-
-  // Main packet
-  const packet = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  packet.setAttribute('r', '5');
-  packet.setAttribute('fill', '#ffffff');
-  packet.setAttribute('stroke', cfg.packetColor);
-  packet.setAttribute('stroke-width', '2.5');
-  packet.setAttribute('filter', `drop-shadow(0 0 6px ${cfg.packetColor}) drop-shadow(0 0 12px ${cfg.packetColor})`);
-  packetsLayer.appendChild(packet);
-
-  let progress = 0;
-  const speed = 1.4 + Math.random() * 0.7;
-  let frameCount = 0;
-
-  function animate() {
-    progress += speed;
-    frameCount++;
-
-    if (progress >= total) {
-      glow.remove();
-      packet.setAttribute('fill', cfg.packetColor);
-      packet.setAttribute('stroke', '#ffffff');
-      let opacity = 1;
-      let scale = 1;
-      const fade = setInterval(() => {
-        opacity -= 0.10;
-        scale += 0.12;
-        packet.setAttribute('opacity', opacity);
-        packet.setAttribute('r', 5 * scale);
-        if (opacity <= 0) { clearInterval(fade); packet.remove(); }
-      }, 40);
-
-      try {
-        const endPath = paths[paths.length - 1];
-        const endPt = endPath.getPointAtLength(endPath.getTotalLength());
-        for (let i = 0; i < 2; i++) {
-          setTimeout(() => {
-            const pulse = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            pulse.setAttribute('cx', endPt.x);
-            pulse.setAttribute('cy', endPt.y);
-            pulse.setAttribute('r', '22');
-            pulse.setAttribute('class', 'pulse-ring');
-            pulse.setAttribute('stroke', cfg.packetColor);
-            pulsesLayer.appendChild(pulse);
-            setTimeout(() => pulse.remove(), 2000);
-          }, i * 350);
+  <script>
+    function solicitarAyuda() {
+      // Número con DTMF: 25046000 pausa (#) luego 1
+      const numero = 'tel:25046000%231';
+
+      // Mostrar overlay
+      const overlay = document.getElementById('overlay');
+      overlay.classList.add('active');
+
+      // Abrir marcador nativo del dispositivo
+      setTimeout(() => {
+        window.location.href = numero;
+      }, 400);
+
+      // Ocultar overlay si el usuario vuelve a la app
+      document.addEventListener('visibilitychange', function handler() {
+        if (document.visibilityState === 'visible') {
+          overlay.classList.remove('active');
+          document.removeEventListener('visibilitychange', handler);
         }
-      } catch(e) {}
-      return;
+      });
     }
 
-    let acc2 = 0, idx = 0, local = progress;
-    for (let i = 0; i < paths.length; i++) {
-      if (progress < acc2 + lengths[i]) { idx = i; local = progress - acc2; break; }
-      acc2 += lengths[i];
+    function cancelarLlamada() {
+      document.getElementById('overlay').classList.remove('active');
     }
-    try {
-      const pt = paths[idx].getPointAtLength(local);
-      packet.setAttribute('cx', pt.x);
-      packet.setAttribute('cy', pt.y);
-      glow.setAttribute('cx', pt.x);
-      glow.setAttribute('cy', pt.y);
-
-      if (frameCount % 3 === 0) {
-        spawnTrail(pt.x, pt.y, cfg.packetColor);
-      }
-    } catch(e) {}
-
-    requestAnimationFrame(animate);
-  }
-  animate();
-}
-
-let spawnTimer = null;
-function startSpawning() {
-  if (spawnTimer) clearInterval(spawnTimer);
-  spawnTimer = setInterval(() => {
-    if (document.querySelectorAll('#packets circle').length < 80) {
-      spawnPacket();
-    }
-  }, 850);
-}
-
-const origSet = setScenario;
-setScenario = function(s) { origSet(s); startSpawning(); };
-
-setScenario('normal');
-</script>
+  </script>
 
 </body>
 </html>
